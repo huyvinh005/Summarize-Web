@@ -1,0 +1,36 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Node / Next
+node_modules/
+.next/
+out/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Logs & temp
+*.log
+logs/
+tmp/
+temp/
+
+# Caches / models / binaries
+huggingface_cache/
+*.bin
+*.safetensors
+*.incomplete
+*.node
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
