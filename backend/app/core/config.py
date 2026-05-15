@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     upload_dir: str = "backend/uploads"
     max_upload_size_mb: int = Field(default=20, ge=1, le=100)
     summary_target_words: int = Field(default=500, ge=120, le=2000)
-    summary_enable_llm_polish: bool = False
+    summary_enable_llm_polish: bool = True
     summary_llm_model_path: str | None = None
     rag_embedding_model_name: str = "bkai-foundation-models/vietnamese-bi-encoder"
     rag_chroma_base_dir: str = "backend/uploads/chroma"
@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     pdf_max_garbage_char_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
     pdf_preserve_layout: bool = True
     pdf_max_pages: int | None = Field(default=None, ge=1, le=5000)
+    admin_emails: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE),

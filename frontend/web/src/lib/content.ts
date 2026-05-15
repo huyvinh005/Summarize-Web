@@ -5,7 +5,7 @@ export const dictionary = {
     navDashboard: "Dashboard",
     navAuth: "Authentication",
     heroBadge: "Academic summarization workspace",
-    heroTitle: "Summarize papers, explore ideas, and chat with your document.",
+    heroTitle: "Summarize papers, explore key ideas, and chat with AI about your document.",
     heroSubtitle:
       "A clean bilingual workspace for article ingestion, AI summarization, summary history, and contextual question answering.",
     heroCtaPrimary: "Open dashboard",
@@ -63,7 +63,7 @@ export const dictionary = {
     navDashboard: "Bảng điều khiển",
     navAuth: "Tài khoản",
     heroBadge: "Không gian tóm tắt học thuật",
-    heroTitle: "Tóm tắt bài báo, khám phá ý chính và trò chuyện với tài liệu.",
+    heroTitle: "Tóm tắt bài báo, khám phá ý chính và trò chuyện với AI về tài liệu.",
     heroSubtitle:
       "Một workspace song ngữ, gọn gàng cho nhập bài báo, tóm tắt bằng AI, lịch sử tóm tắt và hỏi đáp theo ngữ cảnh tài liệu.",
     heroCtaPrimary: "Mở dashboard",

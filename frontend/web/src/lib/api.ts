@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -134,3 +134,71 @@ export type AuthResponse = {
     created_at: string;
   };
 };
+
+export type AdminKpisResponse = {
+  total_users: number;
+  verified_users: number;
+  total_documents: number;
+  total_summaries: number;
+  summaries_today: number;
+  summaries_7d: number;
+};
+
+export type AdminSeriesPoint = {
+  date: string;
+  count: number;
+};
+
+export type AdminSeriesResponse = {
+  users: AdminSeriesPoint[];
+  summaries: AdminSeriesPoint[];
+};
+
+export type AdminRecentUser = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  is_verified: boolean;
+  created_at: string;
+};
+
+export type AdminRecentDocument = {
+  id: string;
+  title: string;
+  source_type: "text" | "pdf";
+  original_filename?: string | null;
+  extraction_method?: string | null;
+  created_at: string;
+};
+
+export type AdminRecentSummary = {
+  id: string;
+  document_id: string | null;
+  method: string;
+  source: string;
+  rating_average?: number | null;
+  rating_count?: number | null;
+  created_at: string;
+};
+
+export type AdminRecentResponse = {
+  users: AdminRecentUser[];
+  documents: AdminRecentDocument[];
+  summaries: AdminRecentSummary[];
+};
+
+export async function fetchAdminKpis(token: string): Promise<AdminKpisResponse> {
+  return apiAuthedRequest<AdminKpisResponse>("/admin/kpis", token);
+}
+
+export async function fetchAdminSeries(token: string, days = 30): Promise<AdminSeriesResponse> {
+  return apiAuthedRequest<AdminSeriesResponse>(`/admin/series?days=${days}`, token);
+}
+
+export async function fetchAdminRecent(token: string, limit = 10): Promise<AdminRecentResponse> {
+  return apiAuthedRequest<AdminRecentResponse>(`/admin/recent?limit=${limit}`, token);
+}
+
+export async function fetchAdminMe(token: string): Promise<{ ok: true }> {
+  return apiAuthedRequest<{ ok: true }>("/admin/me", token);
+}

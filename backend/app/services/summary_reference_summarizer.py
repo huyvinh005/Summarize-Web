@@ -71,6 +71,8 @@ def ensure_sum_model() -> bool:
     _model_load_attempted = True
     if FastLanguageModel is None or torch is None:
         return False
+    if not torch.cuda.is_available():
+        return False
     model_dir = _resolve_model_dir()
     if not os.path.isdir(model_dir):
         return False
