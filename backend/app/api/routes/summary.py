@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.config import get_settings
 from app.core.database import get_database
-from app.core.security import get_current_user, get_optional_current_user
+from app.core.security import get_current_user
 from app.schemas.summary import (
     DocumentResponse,
     SummaryCreateTextRequest,
@@ -37,10 +37,6 @@ def build_summary_response(summary_payload: dict | None) -> SummaryResponse | No
     return SummaryResponse(**summary_payload)
 
 
-async def resolve_user_id(user: dict | None) -> str | None:
-    if not user:
-        return None
-    return str(user["_id"])
 
 
 async def build_available_summaries(
@@ -96,6 +92,7 @@ async def upload_pdf_document(
     file: UploadFile = File(...),
     language: str = Form("vi"),
     db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
 ) -> UploadDocumentResponse:
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only PDF uploads are supported")
@@ -120,8 +117,10 @@ async def upload_pdf_document(
     existing = await document_service.find_document_by_content_hash(
         document_service.build_content_hash(extracted_text),
         source_type="pdf",
+        user_id=str(current_user["_id"]),
     )
     document = await document_service.create_pdf_document(
+        user_id=str(current_user["_id"]),
         title=Path(filename).stem,
         text=extracted_text,
         language=language if language in {"vi", "en"} else "vi",
@@ -145,14 +144,17 @@ async def upload_pdf_document(
 async def create_text_document(
     payload: SummaryCreateTextRequest,
     db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
 ) -> DocumentResponse:
     document_service = DocumentService(db)
     title = payload.title or "Pasted article text"
     existing = await document_service.find_document_by_content_hash(
         document_service.build_content_hash(payload.text),
         source_type="text",
+        user_id=str(current_user["_id"]),
     )
     document = await document_service.create_text_document(
+        user_id=str(current_user["_id"]),
         title=title,
         text=payload.text,
         language=payload.language,
@@ -174,14 +176,14 @@ async def generate_summary(
     document_id: str,
     payload: SummaryGenerateRequest,
     db: AsyncIOMotorDatabase = Depends(get_database),
-    current_user: dict | None = Depends(get_optional_current_user),
+    current_user: dict = Depends(get_current_user),
 ) -> SummaryResponse:
     document_service = DocumentService(db)
     document = await document_service.get_document(document_id)
     if not document:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
-    user_id = await resolve_user_id(current_user)
+    user_id = str(current_user["_id"])
     if not payload.force_regenerate:
         preferred_summary = await document_service.get_preferred_summary(document_id)
         if preferred_summary:
@@ -205,11 +207,11 @@ async def generate_summary(
 @router.get("/history", response_model=list[SummaryHistoryItem])
 async def get_history(
     db: AsyncIOMotorDatabase = Depends(get_database),
-    current_user: dict | None = Depends(get_optional_current_user),
+    current_user: dict = Depends(get_current_user),
 ) -> list[SummaryHistoryItem]:
     document_service = DocumentService(db)
-    items = await document_service.get_history()
-    user_id = await resolve_user_id(current_user)
+    user_id = str(current_user["_id"])
+    items = await document_service.get_history(user_id=user_id)
     history: list[SummaryHistoryItem] = []
     for item in items:
         preferred_summary = item.get("preferred_summary")
@@ -242,14 +244,14 @@ async def get_history(
 async def get_summary_detail(
     document_id: str,
     db: AsyncIOMotorDatabase = Depends(get_database),
-    current_user: dict | None = Depends(get_optional_current_user),
+    current_user: dict = Depends(get_current_user),
 ) -> SummaryDetailResponse:
     document_service = DocumentService(db)
     document = await document_service.get_document_with_latest_summary(document_id)
     if not document:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
-    user_id = await resolve_user_id(current_user)
+    user_id = str(current_user["_id"])
     preferred_summary = await get_preferred_summary_or_none(document_service, document_id=document_id, user_id=user_id)
     latest_summary = await get_latest_summary_or_none(document_service, document_id=document_id, user_id=user_id)
     available_summaries = await build_available_summaries(document_service, document_id=document_id, user_id=user_id)

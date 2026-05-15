@@ -15,13 +15,14 @@ class DocumentService:
         self.summaries = db["summaries"]
         self.summary_ratings = db["summary_ratings"]
 
-    async def create_text_document(self, *, title: str, text: str, language: str) -> dict[str, Any]:
+    async def create_text_document(self, *, user_id: str, title: str, text: str, language: str) -> dict[str, Any]:
         content_hash = self.build_content_hash(text)
-        existing = await self.find_document_by_content_hash(content_hash, source_type="text")
+        existing = await self.find_document_by_content_hash(content_hash, source_type="text", user_id=user_id)
         if existing:
             return existing
 
         record = DocumentRecord(
+            user_id=user_id,
             title=title,
             source_type="text",
             language=language,
@@ -35,6 +36,7 @@ class DocumentService:
     async def create_pdf_document(
         self,
         *,
+        user_id: str,
         title: str,
         text: str,
         language: str,
@@ -43,11 +45,12 @@ class DocumentService:
         original_filename: str | None = None,
     ) -> dict[str, Any]:
         content_hash = self.build_content_hash(text)
-        existing = await self.find_document_by_content_hash(content_hash, source_type="pdf")
+        existing = await self.find_document_by_content_hash(content_hash, source_type="pdf", user_id=user_id)
         if existing:
             return existing
 
         record = DocumentRecord(
+            user_id=user_id,
             title=title,
             source_type="pdf",
             language=language,
@@ -65,8 +68,11 @@ class DocumentService:
             return None
         return await self.documents.find_one({"_id": ObjectId(document_id)})
 
-    async def find_document_by_content_hash(self, content_hash: str, *, source_type: str) -> dict[str, Any] | None:
-        return await self.documents.find_one({"content_hash": content_hash, "source_type": source_type}, sort=[("created_at", -1)])
+    async def find_document_by_content_hash(self, content_hash: str, *, source_type: str, user_id: str) -> dict[str, Any] | None:
+        return await self.documents.find_one(
+            {"content_hash": content_hash, "source_type": source_type, "user_id": user_id},
+            sort=[("created_at", -1)],
+        )
 
     async def save_summary(self, *, document_id: str, summary: str, method: str, source: str) -> dict[str, Any]:
         latest = await self.get_latest_summary(document_id)
@@ -148,9 +154,9 @@ class DocumentService:
         )
         return await self.get_summary(summary_id)
 
-    async def get_history(self) -> list[dict[str, Any]]:
+    async def get_history(self, *, user_id: str) -> list[dict[str, Any]]:
         items = []
-        async for item in self.documents.find().sort("created_at", -1):
+        async for item in self.documents.find({"user_id": user_id}).sort("created_at", -1):
             preferred_summary = await self.get_preferred_summary(str(item["_id"]))
             latest_summary = await self.get_latest_summary(str(item["_id"]))
             item["latest_summary"] = latest_summary

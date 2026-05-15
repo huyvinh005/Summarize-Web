@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class DocumentRecord(BaseModel):
+    user_id: str
     title: str = Field(min_length=1, max_length=240)
     source_type: Literal["text", "pdf"]
     language: Literal["vi", "en"] = "vi"

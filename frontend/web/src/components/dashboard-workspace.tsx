@@ -323,7 +323,7 @@ export function DashboardWorkspace({ locale, auth, onBackToLanding, onLogout }: 
 
               <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
                 <div className="space-y-4">
-                  <Panel title={t.historyTitle} icon={<History className="h-4 w-4" />}>
+                  <Panel title={t.historyTitle} icon={<History className="h-4 w-4" />} collapsible defaultCollapsed>
                     <div className="space-y-3">
                       {loadingHistory ? (
                         <SkeletonList rows={4} />
@@ -611,18 +611,35 @@ function Panel({
   title,
   icon,
   children,
+  collapsible = false,
+  defaultCollapsed = false,
 }: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
 }) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
+
   return (
     <div className="rounded-[26px] border border-white/10 bg-white/[0.02] p-4">
-      <div className="mb-4 flex items-center gap-2 text-sm font-medium text-white/75">
-        <span className="text-white/45">{icon}</span>
-        <span>{title}</span>
+      <div className="mb-4 flex items-center justify-between gap-3 text-sm font-medium text-white/75">
+        <div className="flex items-center gap-2">
+          <span className="text-white/45">{icon}</span>
+          <span>{title}</span>
+        </div>
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setCollapsed((value) => !value)}
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50"
+          >
+            {collapsed ? "Mở" : "Ẩn"}
+          </button>
+        ) : null}
       </div>
-      {children}
+      {collapsed ? null : children}
     </div>
   );
 }
