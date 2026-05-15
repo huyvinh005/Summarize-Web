@@ -191,6 +191,7 @@ async def generate_summary(
         document_id=document_id,
         text=document["extracted_text"],
         language=payload.language,
+        target_words=payload.target_words,
     )
     saved = await document_service.save_summary(
         document_id=document_id,

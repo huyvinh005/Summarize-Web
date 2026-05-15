@@ -54,6 +54,17 @@ export function DashboardWorkspace({ locale, auth, onBackToLanding, onLogout }: 
   const loadingLabel = locale === "vi" ? "Đang xử lý..." : "Processing...";
   const submitLabel = locale === "vi" ? "Gửi" : "Send";
 
+  const [summaryTargetWords, setSummaryTargetWords] = useState(500);
+  const summaryTargetLabel = locale === "vi" ? "Số từ mục tiêu" : "Target words";
+  const summaryTargetHint = locale === "vi" ? "Điều chỉnh độ dài bản tóm tắt." : "Adjust the summary length.";
+  const summaryTargetMin = 150;
+  const summaryTargetMax = 2000;
+  const summaryTargetStep = 50;
+  const summaryTargetId = "summary-target-words";
+  const summaryTargetValueLabel = `${summaryTargetWords} ${locale === "vi" ? "từ" : "words"}`;
+  const summaryTargetNormalized = (summaryTargetWords - summaryTargetMin) / (summaryTargetMax - summaryTargetMin);
+  const summaryTargetRail = `linear-gradient(90deg, rgba(56,189,248,0.65) 0%, rgba(56,189,248,0.65) ${Math.max(0, Math.min(100, summaryTargetNormalized * 100))}%, rgba(255,255,255,0.12) ${Math.max(0, Math.min(100, summaryTargetNormalized * 100))}%, rgba(255,255,255,0.12) 100%)`;
+
   const formatRatingAverage = (value: number | null | undefined) => (typeof value === "number" ? value : 0).toFixed(1);
   const getRatingCount = (value: number | null | undefined) => (typeof value === "number" ? value : 0);
 
@@ -160,7 +171,7 @@ export function DashboardWorkspace({ locale, auth, onBackToLanding, onLogout }: 
       const document = await ensureActiveDocument();
       const response = await apiAuthedRequest<SummaryResponse>(`/summary/${document.id}/generate`, auth.access_token, {
         method: "POST",
-        body: JSON.stringify({ language: locale, force_regenerate: forceRegenerate }),
+        body: JSON.stringify({ language: locale, force_regenerate: forceRegenerate, target_words: summaryTargetWords }),
       });
       applySummarySelection(response, response ? [response, ...availableSummaries.filter((item) => item.summary_id !== response.summary_id)] : []);
       await loadHistory();
@@ -369,6 +380,28 @@ export function DashboardWorkspace({ locale, auth, onBackToLanding, onLogout }: 
                         placeholder={t.inputPlaceholder}
                         className="min-h-36 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-sky-400/40 focus:ring-2 focus:ring-sky-400/20"
                       />
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <label htmlFor={summaryTargetId} className="text-sm font-medium text-white/80">
+                            {summaryTargetLabel}
+                          </label>
+                          <span className="text-sm font-semibold text-white/90 tabular-nums">{summaryTargetValueLabel}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-white/45">{summaryTargetHint}</p>
+                        <input
+                          id={summaryTargetId}
+                          type="range"
+                          min={summaryTargetMin}
+                          max={summaryTargetMax}
+                          step={summaryTargetStep}
+                          value={summaryTargetWords}
+                          onChange={(event) => {
+                            setSummaryTargetWords(Number(event.target.value));
+                          }}
+                          className="mt-3 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50"
+                          style={{ background: summaryTargetRail }}
+                        />
+                      </div>
                       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                         <label className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:-translate-y-0.5 hover:bg-white/10 focus-within:ring-2 focus-within:ring-sky-400/40">
                           {selectedFile ? selectedFile.name : t.uploadLabel}

@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     rag_model_source: str = "backend/RAG.ipynb"
     upload_dir: str = "backend/uploads"
     max_upload_size_mb: int = Field(default=20, ge=1, le=100)
-    summary_target_words: int = Field(default=500, ge=120, le=2000)
+    summary_target_words: int = Field(default=500, ge=150, le=2000)
     summary_enable_llm_polish: bool = True
     summary_llm_model_path: str | None = None
     rag_embedding_model_name: str = "bkai-foundation-models/vietnamese-bi-encoder"

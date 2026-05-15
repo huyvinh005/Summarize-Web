@@ -14,12 +14,20 @@ class GeneratedSummary:
 
 
 class SummaryService:
-    def generate_summary(self, *, document_id: str, text: str, language: str) -> GeneratedSummary:
+    def generate_summary(
+        self,
+        *,
+        document_id: str,
+        text: str,
+        language: str,
+        target_words: int | None = None,
+    ) -> GeneratedSummary:
         settings = get_settings()
         use_llm_polish = language == "vi" and settings.summary_enable_llm_polish
+        resolved_target_words = target_words or settings.summary_target_words
         result = summarize_pdf_by_textrank(
             raw_text=text,
-            target_words=settings.summary_target_words,
+            target_words=resolved_target_words,
             use_llm_polish=use_llm_polish,
             verbose=False,
         )

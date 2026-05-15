@@ -23,6 +23,7 @@ class SummaryCreateTextRequest(BaseModel):
 class SummaryGenerateRequest(BaseModel):
     language: Literal["vi", "en"] = "vi"
     force_regenerate: bool = False
+    target_words: int | None = Field(default=None, ge=150, le=2000)
 
 
 class DocumentResponse(BaseModel):
