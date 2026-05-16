@@ -2,8 +2,15 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-    throw new Error(payload?.detail ?? "Request failed");
+    const payload = (await response.json().catch(() => null)) as { detail?: unknown } | null;
+    const detail = payload?.detail;
+    const message =
+      typeof detail === "string"
+        ? detail
+        : detail
+          ? JSON.stringify(detail)
+          : "Request failed";
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;
